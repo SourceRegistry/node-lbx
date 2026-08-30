@@ -141,3 +141,19 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# AI
+.nova-ai
+.codex
+.claude
+
+# External
+ext
+examples
+fixtures
+!test/fixtures
+test-fixtures
+manual-check
+
+# Editor
+.idea

@@ -1,0 +1,53 @@
+{
+  "name": "node-lbx",
+  "version": "0.1.0",
+  "description": "Read, manipulate, and write Brother P-touch .lbx label files.",
+  "type": "module",
+  "main": "./dist/node-lbx.js",
+  "module": "./dist/node-lbx.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/node-lbx.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "pretest": "tsx test/fixtures/generate.ts",
+    "test": "node --import tsx --test test/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SourceRegistry/node-lbx.git"
+  },
+  "keywords": [
+    "lbx",
+    "brother",
+    "ptouch",
+    "p-touch",
+    "label"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SourceRegistry/node-lbx/issues"
+  },
+  "homepage": "https://github.com/SourceRegistry/node-lbx#readme",
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.8",
+    "adm-zip": "^0.6.0"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7",
+    "vite-plugin-dts": "^4.4.0"
+  }
+}

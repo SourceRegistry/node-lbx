@@ -1,5 +1,5 @@
 {
-  "name": "node-lbx",
+  "name": "@sourceregistry/node-lbx",
   "version": "1.0.0",
   "description": "Read, manipulate, and write Brother P-touch .lbx label files.",
   "type": "module",
@@ -15,6 +15,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "vite build",
     "pretest": "tsx test/fixtures/generate.ts",

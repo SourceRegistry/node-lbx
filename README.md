@@ -1,15 +1,21 @@
 # node-lbx
 
-[![npm version](https://img.shields.io/npm/v/node-lbx.svg)](https://www.npmjs.com/package/node-lbx)
-[![npm downloads](https://img.shields.io/npm/dm/node-lbx.svg)](https://www.npmjs.com/package/node-lbx)
+[![npm version](https://img.shields.io/npm/v/%40sourceregistry%2Fnode-lbx.svg)](https://www.npmjs.com/package/@sourceregistry/node-lbx)
+[![npm downloads](https://img.shields.io/npm/dm/%40sourceregistry%2Fnode-lbx.svg)](https://www.npmjs.com/package/@sourceregistry/node-lbx)
 [![Release](https://github.com/SourceRegistry/node-lbx/actions/workflows/release.yml/badge.svg)](https://github.com/SourceRegistry/node-lbx/actions/workflows/release.yml)
-[![license](https://img.shields.io/npm/l/node-lbx.svg)](https://github.com/SourceRegistry/node-lbx/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/%40sourceregistry%2Fnode-lbx.svg)](https://github.com/SourceRegistry/node-lbx/blob/main/LICENSE)
 
 Read, edit, and write Brother P-touch `.lbx` label files from Node/TypeScript.
 
 An `.lbx` file is a ZIP archive containing `label.xml` (the layout) plus `prop.xml` and any embedded images. This library parses it into a typed object model so you can find placeholder objects designed in P-touch Editor and fill them with real data (e.g. from a database), then write a new `.lbx`.
 
 ## Install
+
+```sh
+npm install @sourceregistry/node-lbx
+```
+
+For local development on this repo instead:
 
 ```sh
 npm install
@@ -21,7 +27,7 @@ npm run build
 Design a label visually in P-touch Editor, naming the objects you want to fill (`Right click -> Name Object`). Then:
 
 ```ts
-import { LbxDocument } from 'node-lbx';
+import { LbxDocument } from '@sourceregistry/node-lbx';
 
 const doc = LbxDocument.load('template.lbx');
 
@@ -46,7 +52,7 @@ doc.save('output.lbx');
 ## Building a label from scratch
 
 ```ts
-import { LbxDocument } from 'node-lbx';
+import { LbxDocument } from '@sourceregistry/node-lbx';
 
 const doc = LbxDocument.create({ width: '24mm', height: '60mm' });
 doc.addText({ x: 4, y: 4, width: 150, height: 20, text: 'Hello', objectName: 'GREETING' });
@@ -59,7 +65,7 @@ doc.save('output.lbx');
 Render any `.lbx` to SVG to see the layout without opening P-touch Editor:
 
 ```ts
-import { LbxDocument, renderToSvg } from 'node-lbx';
+import { LbxDocument, renderToSvg } from '@sourceregistry/node-lbx';
 
 const doc = LbxDocument.load('label.lbx');
 const svg = renderToSvg(doc); // 1 SVG user unit = 1pt, same coordinate space as label.xml
@@ -101,7 +107,7 @@ Real encoders — not a schematic placeholder — for every protocol in P-touch 
 To see the *filled* label rather than the empty template, fill placeholders first (same `objectName` lookup as `findObjectByName`) and render the result:
 
 ```ts
-import { LbxDocument, fillPlaceholders, renderToSvg } from 'node-lbx';
+import { LbxDocument, fillPlaceholders, renderToSvg } from '@sourceregistry/node-lbx';
 
 const doc = LbxDocument.load('template.lbx');
 fillPlaceholders(doc, {

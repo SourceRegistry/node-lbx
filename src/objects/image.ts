@@ -1,5 +1,4 @@
 import type { Document, Element } from '@xmldom/xmldom';
-import { readFileSync } from 'node:fs';
 import { LabelObject } from './base.js';
 import { NS } from '../xml/namespaces.js';
 import { getChildNS } from '../xml/dom.js';
@@ -32,7 +31,8 @@ export class ImageObject extends LabelObject {
    * resize/crop semantics in P-touch Editor are unconfirmed by sample data (see plan open risks).
    */
   setImage(bufferOrPath: Buffer | string, opts: { originalName?: string } = {}): void {
-    const buffer = typeof bufferOrPath === 'string' ? readFileSync(bufferOrPath) : bufferOrPath;
+    const buffer = typeof bufferOrPath === 'string' ? this.archive.readExternalFile?.(bufferOrPath) : bufferOrPath;
+    if (!buffer) throw new Error('node-lbx: filesystem paths are unavailable in this environment; pass image bytes instead');
     const name = this.fileName;
     if (!name) throw new Error('node-lbx: image object has no fileName to write to');
     this.archive.writeBinary(name, buffer);

@@ -13,6 +13,7 @@
  */
 import { GF256_DATAMATRIX } from './galoisField.js';
 import { MAXI_GRID, MAXI_CODE_SET, MAXI_SYMBOL_CHAR } from './maxicodeTables.js';
+import { latin1Bytes } from './bytes.js';
 
 // Code Set state indices, matching zint's MX_STATES order.
 const SET_A = 0;
@@ -66,7 +67,7 @@ function symbolValue(state: number, byte: number): number {
 }
 
 /** Greedy Code Set encoder. Returns exactly 93 message codewords (padded), throwing if the input doesn't fit. */
-function encodeMessage(bytes: Buffer): number[] {
+function encodeMessage(bytes: Uint8Array): number[] {
   let state = SET_A;
   const out: number[] = [];
 
@@ -94,7 +95,7 @@ function encodeMessage(bytes: Buffer): number[] {
 
 /** Encodes `data` (as Latin-1 bytes — MaxiCode's Code Sets cover the full 0-255 byte range) into the 33x30 module grid (`true` = dark), Mode 4. */
 export function encodeMaxicode(data: string): boolean[][] {
-  const bytes = Buffer.from(data, 'latin1');
+  const bytes = latin1Bytes(data);
   const message = encodeMessage(bytes);
 
   const codewords = new Array<number>(144).fill(0);

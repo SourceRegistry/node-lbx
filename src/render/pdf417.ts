@@ -23,6 +23,7 @@
  */
 import { CLUSTER_0, CLUSTER_3, CLUSTER_6 } from './pdf417ClusterPatterns.js';
 import { MICRO_VARIANTS, RAP_TABLE, RAP_SIDE, RAP_CENTRE, MICRO_AUTOSIZE_THRESHOLDS, MICRO_AUTOSIZE_VARIANTS } from './microPdf417Tables.js';
+import { utf8Bytes } from './bytes.js';
 
 const PDF417_PRIME = 929;
 const PDF417_PRIMITIVE = 3;
@@ -73,7 +74,7 @@ function reedSolomonEncodePdf417(data: number[], numEc: number): number[] {
 }
 
 /** Byte Compaction mode: groups of 6 bytes -> 5 base-900 codewords; a short trailing group emits one codeword per byte. */
-function byteCompact(bytes: Buffer): number[] {
+function byteCompact(bytes: Uint8Array): number[] {
   const cws: number[] = [];
   const full = Math.floor(bytes.length / 6) * 6;
   for (let start = 0; start < full; start += 6) {
@@ -149,7 +150,7 @@ const CLUSTERS = [CLUSTER_0, CLUSTER_3, CLUSTER_6];
 
 /** Builds `standard` or `truncate` PDF417 — identical codewords/error correction either way; `truncate` just omits the right row indicator's bars and shrinks the stop pattern to one dark module. */
 function buildStandardOrTruncated(data: string, ecl: number, truncate: boolean): boolean[][] {
-  const bytes = Buffer.from(data, 'utf8');
+  const bytes = utf8Bytes(data);
   const source = [LATCH_BYTE, ...byteCompact(bytes)];
 
   const columns = autoColumns(source.length + 1 + ecCodewordCount(ecl));
@@ -189,7 +190,7 @@ function buildStandardOrTruncated(data: string, ecl: number, truncate: boolean):
 
 /** Builds MicroPDF417: variant auto-selected from the 34-entry ISO/IEC 24728:2006 Table 1, Row Address Pattern row layout instead of numeric row indicators. */
 function buildMicroPdf417(data: string): boolean[][] {
-  const bytes = Buffer.from(data, 'utf8');
+  const bytes = utf8Bytes(data);
   const source = [LATCH_BYTE, ...byteCompact(bytes)];
   if (source.length > 126) throw new Error(`node-lbx: MicroPDF417 data too long (${source.length} codewords, max 126)`);
 

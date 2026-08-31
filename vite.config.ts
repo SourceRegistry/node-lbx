@@ -5,13 +5,16 @@ export default defineConfig({
   plugins: [dts({ rollupTypes: true })],
   build: {
     lib: {
-      entry: 'src/index.ts',
+      entry: {
+        index: 'src/index.ts',
+        browser: 'src/browser.ts',
+      },
       formats: ['es'],
-      fileName: () => 'node-lbx.js',
+      fileName: (_format, entryName) => (entryName === 'index' ? 'node-lbx.js' : `${entryName}.js`),
     },
     rollupOptions: {
-      external: ['@xmldom/xmldom', 'adm-zip', 'node:fs', 'node:path', 'node:zlib'],
+      external: ['adm-zip', 'node:fs', 'node:path'],
     },
-    target: 'node18',
+    target: 'es2022',
   },
 });

@@ -6,6 +6,7 @@
  */
 import { GF256_QR } from './galoisField.js';
 import { MAX_DATA_BITS, MAX_CODEWORDS, RS_ECC_CODEWORDS, RS_BLOCK_COUNT, ALIGNMENT_CENTRES, MATRIX_REMAIN_BIT, FORMAT_INFO, versionInfoBits } from './qrTables.js';
+import { utf8Bytes } from './bytes.js';
 
 export type QrErrorCorrection = 'L' | 'M' | 'Q' | 'H';
 
@@ -194,7 +195,7 @@ function penalty(matrix: boolean[][]): number {
 export function encodeQr(data: string, opts: QrOptions = {}): boolean[][] {
   const eclChar = opts.ecl ?? 'M';
   const ecl = ECL_INDEX[eclChar];
-  const bytes = Buffer.from(data, 'utf8');
+  const bytes = utf8Bytes(data);
 
   let version = 0;
   let maxBits = 0;

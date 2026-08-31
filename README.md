@@ -71,6 +71,21 @@ const doc = LbxDocument.load('label.lbx');
 const svg = renderToSvg(doc); // 1 SVG user unit = 1pt, same coordinate space as label.xml
 ```
 
+In browser application code processed by a bundler, use the browser-only entry point. It accepts
+the bytes from a `File`, parses the ZIP, and renders without uploading the label or including Node
+filesystem APIs in the client bundle:
+
+```ts
+import { renderLbxToSvg } from '@sourceregistry/node-lbx/browser';
+
+const svg = renderLbxToSvg(await file.arrayBuffer());
+preview.innerHTML = svg;
+```
+
+See [`examples/browser-render`](examples/browser-render) for a complete drag-and-drop example.
+That standalone HTML imports `dist/browser.js` by relative URL because native browsers do not
+resolve bare npm package specifiers without a bundler or import map.
+
 Or from the command line, which writes a standalone HTML preview and opens it in your browser:
 
 ```sh

@@ -21,6 +21,7 @@ import { encodeMaxicode } from './maxicode.js';
 import { encodeQr } from './qrcode.js';
 import { encodeDataMatrix } from './dataMatrix.js';
 import { encodePdf417 } from './pdf417.js';
+import { bytesToBase64 } from './bytes.js';
 
 export interface RenderOptions {
   /** Extra white margin (in pt) drawn around the paper bounds. Default 0. */
@@ -127,7 +128,7 @@ function renderImage(obj: ImageObject): string {
   try {
     const buf = obj.getImageBuffer();
     let mime = mimeForFileName(obj.fileName);
-    let bytes = buf;
+    let bytes: Uint8Array = buf;
     if (mime === 'image/bmp') {
       // P-touch's 32bpp BMP export hides an alpha channel in a byte the BMP spec (and browsers)
       // treat as opaque padding — re-encode as PNG so transparency renders like P-touch Editor.
@@ -137,7 +138,7 @@ function renderImage(obj: ImageObject): string {
         bytes = png;
       }
     }
-    dataUri = `data:${mime};base64,${bytes.toString('base64')}`;
+    dataUri = `data:${mime};base64,${bytesToBase64(bytes)}`;
   } catch {
     // embedded bytes missing from the archive — fall through to the placeholder box below
   }

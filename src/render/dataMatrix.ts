@@ -12,6 +12,7 @@
  */
 import { GF256_DATAMATRIX } from './galoisField.js';
 import { SQUARE_SPECS, RECT_SPECS, DATA_MATRIX_SPECS, type DataMatrixSpec } from './dataMatrixTables.js';
+import { utf8Bytes } from './bytes.js';
 
 export type DataMatrixShape = 'square' | 'rectangular' | 'auto';
 
@@ -53,7 +54,7 @@ function selectSpec(dataWordsNeeded: number, shape: DataMatrixShape): DataMatrix
 }
 
 /** ASCII-mode codewords: digit pairs pack into one codeword; bytes > 127 use Upper Shift. */
-function packAscii(bytes: Buffer): number[] {
+function packAscii(bytes: Uint8Array): number[] {
   const out: number[] = [];
   let i = 0;
   while (i < bytes.length) {
@@ -288,7 +289,7 @@ function addFinderPatterns(dataMatrix: boolean[][], regionRows: number, regionCo
 
 /** Encodes `data` as UTF-8 bytes (ASCII mode; non-ASCII bytes use Upper Shift) into the final Data Matrix module grid (`true` = dark), including finder patterns but no quiet zone. */
 export function encodeDataMatrix(data: string, opts: DataMatrixOptions = {}): boolean[][] {
-  const bytes = Buffer.from(data, 'utf8');
+  const bytes = utf8Bytes(data);
   const codewords = packAscii(bytes);
 
   const spec = selectSpec(codewords.length, opts.shape ?? 'auto');

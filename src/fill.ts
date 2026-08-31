@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import type { LbxDocument } from './document.js';
 import { TextObject } from './objects/text.js';
 import { BarcodeObject } from './objects/barcode.js';
@@ -21,7 +20,7 @@ export function fillPlaceholders(doc: LbxDocument, data: FillData): void {
       } else if (obj instanceof BarcodeObject) {
         obj.setData(String(value));
       } else if (obj instanceof ImageObject) {
-        obj.setImage(Buffer.isBuffer(value) ? value : readFileSync(value));
+        obj.setImage(value);
       }
     }
   }

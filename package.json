@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/node-lbx.js"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
     }
   },
   "files": [
@@ -44,7 +48,8 @@
   "homepage": "https://github.com/SourceRegistry/node-lbx#readme",
   "dependencies": {
     "@xmldom/xmldom": "^0.9.8",
-    "adm-zip": "^0.6.0"
+    "adm-zip": "^0.6.0",
+    "fflate": "^0.8.3"
   },
   "devDependencies": {
     "@semantic-release/changelog": "7.0.0",

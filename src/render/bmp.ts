@@ -1,54 +1,63 @@
 /**
  * Decodes uncompressed BMP pixel data into RGBA, and re-encodes as PNG.
  *
- * Why this exists: P-touch Editor exports images as 32bpp `BI_RGB` BMP, and — per an unofficial
- * but common GDI+ convention — repurposes the 4th ("reserved") byte of each pixel as an alpha
- * channel. The BMP spec doesn't define alpha for `BI_RGB`, so browsers correctly ignore that byte
- * and render the pixel's raw (often black) RGB, producing a solid block behind what P-touch shows
- * as a transparent background. Converting to a real PNG alpha channel renders identically to
- * P-touch Editor in any SVG viewer.
+ * P-touch Editor puts alpha in the reserved byte of 32bpp BI_RGB pixels. Browsers ignore that
+ * byte when displaying BMP, so conversion to PNG is needed for a faithful preview.
  */
-import { deflateSync } from 'node:zlib';
+import { zlibSync } from 'fflate';
 
 interface DecodedBitmap {
   width: number;
   height: number;
   /** Top-down RGBA, 4 bytes per pixel. */
-  rgba: Buffer;
+  rgba: Uint8Array;
 }
 
-/** Decodes a 24bpp or 32bpp uncompressed (BI_RGB) BMP. Returns undefined for anything else (RLE, indexed, etc.) — caller should fall back to embedding the original bytes. */
-export function decodeBmp(buf: Buffer): DecodedBitmap | undefined {
-  if (buf.length < 54 || buf.readUInt16LE(0) !== 0x4d42 /* 'BM' */) return undefined;
+function viewOf(bytes: Uint8Array): DataView {
+  return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+}
 
-  const pixelOffset = buf.readUInt32LE(10);
-  const dibHeaderSize = buf.readUInt32LE(14);
+function concatBytes(parts: Uint8Array[]): Uint8Array {
+  const result = new Uint8Array(parts.reduce((length, part) => length + part.length, 0));
+  let offset = 0;
+  for (const part of parts) {
+    result.set(part, offset);
+    offset += part.length;
+  }
+  return result;
+}
+
+/** Decodes a 24bpp or 32bpp uncompressed (BI_RGB) BMP. */
+export function decodeBmp(buf: Uint8Array): DecodedBitmap | undefined {
+  if (buf.length < 54) return undefined;
+  const view = viewOf(buf);
+  if (view.getUint16(0, true) !== 0x4d42) return undefined;
+
+  const pixelOffset = view.getUint32(10, true);
+  const dibHeaderSize = view.getUint32(14, true);
   if (dibHeaderSize < 40) return undefined;
 
-  const width = buf.readInt32LE(18);
-  const heightRaw = buf.readInt32LE(22);
-  const bpp = buf.readUInt16LE(28);
-  const compression = buf.readUInt32LE(30);
-  if (compression !== 0 /* BI_RGB */ || (bpp !== 24 && bpp !== 32)) return undefined;
+  const width = view.getInt32(18, true);
+  const heightRaw = view.getInt32(22, true);
+  const bpp = view.getUint16(28, true);
+  const compression = view.getUint32(30, true);
+  if (width <= 0 || heightRaw === 0 || compression !== 0 || (bpp !== 24 && bpp !== 32)) return undefined;
 
   const height = Math.abs(heightRaw);
   const bottomUp = heightRaw > 0;
   const bytesPerPixel = bpp / 8;
-  const rowSize = Math.ceil((width * bpp) / 32) * 4; // BMP rows are padded to a 4-byte boundary
-
+  const rowSize = Math.ceil((width * bpp) / 32) * 4;
   if (pixelOffset + rowSize * height > buf.length) return undefined;
 
-  // For 32bpp, decide whether the 4th byte is real alpha (P-touch's convention) or just padding:
-  // sample it across the image and only trust it if it actually varies.
   let hasAlpha = false;
   if (bpp === 32) {
     let first = -1;
     for (let row = 0; row < height && !hasAlpha; row += Math.max(1, Math.floor(height / 32))) {
       const rowStart = pixelOffset + row * rowSize;
       for (let col = 0; col < width; col += Math.max(1, Math.floor(width / 32))) {
-        const a = buf[rowStart + col * 4 + 3]!;
-        if (first === -1) first = a;
-        else if (a !== first) {
+        const alpha = buf[rowStart + col * 4 + 3]!;
+        if (first === -1) first = alpha;
+        else if (alpha !== first) {
           hasAlpha = true;
           break;
         }
@@ -56,21 +65,16 @@ export function decodeBmp(buf: Buffer): DecodedBitmap | undefined {
     }
   }
 
-  const rgba = Buffer.alloc(width * height * 4);
+  const rgba = new Uint8Array(width * height * 4);
   for (let y = 0; y < height; y++) {
     const srcRow = bottomUp ? height - 1 - y : y;
-    const rowStart = pixelOffset + srcRow * rowSize;
+    let src = pixelOffset + srcRow * rowSize;
     let dst = y * width * 4;
-    let src = rowStart;
     for (let x = 0; x < width; x++) {
-      const b = buf[src]!;
-      const g = buf[src + 1]!;
-      const r = buf[src + 2]!;
-      const a = bpp === 32 && hasAlpha ? buf[src + 3]! : 255;
-      rgba[dst] = r;
-      rgba[dst + 1] = g;
-      rgba[dst + 2] = b;
-      rgba[dst + 3] = a;
+      rgba[dst] = buf[src + 2]!;
+      rgba[dst + 1] = buf[src + 1]!;
+      rgba[dst + 2] = buf[src]!;
+      rgba[dst + 3] = bpp === 32 && hasAlpha ? buf[src + 3]! : 255;
       dst += 4;
       src += bytesPerPixel;
     }
@@ -89,48 +93,49 @@ const CRC_TABLE = (() => {
   return table;
 })();
 
-function crc32(buf: Buffer): number {
+function crc32(buf: Uint8Array): number {
   let c = 0xffffffff;
   for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]!) & 0xff]! ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
 }
 
-function pngChunk(type: string, data: Buffer): Buffer {
-  const typeAndData = Buffer.concat([Buffer.from(type, 'ascii'), data]);
-  const length = Buffer.alloc(4);
-  length.writeUInt32BE(data.length, 0);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(typeAndData), 0);
-  return Buffer.concat([length, typeAndData, crc]);
+function asciiBytes(value: string): Uint8Array {
+  return Uint8Array.from(value, (char) => char.charCodeAt(0));
 }
 
-/** Encodes top-down RGBA pixel data as a minimal (uncompressed-filter, single IDAT) PNG. */
-export function encodePng({ width, height, rgba }: DecodedBitmap): Buffer {
-  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+function uint32(value: number): Uint8Array {
+  const bytes = new Uint8Array(4);
+  new DataView(bytes.buffer).setUint32(0, value, false);
+  return bytes;
+}
 
-  const ihdrData = Buffer.alloc(13);
-  ihdrData.writeUInt32BE(width, 0);
-  ihdrData.writeUInt32BE(height, 4);
-  ihdrData[8] = 8; // bit depth
-  ihdrData[9] = 6; // color type: RGBA
-  ihdrData[10] = 0; // compression method
-  ihdrData[11] = 0; // filter method
-  ihdrData[12] = 0; // interlace method
+function pngChunk(type: string, data: Uint8Array): Uint8Array {
+  const typeAndData = concatBytes([asciiBytes(type), data]);
+  return concatBytes([uint32(data.length), typeAndData, uint32(crc32(typeAndData))]);
+}
 
-  const raw = Buffer.alloc((width * 4 + 1) * height);
+/** Encodes top-down RGBA pixel data as a minimal PNG. */
+export function encodePng({ width, height, rgba }: DecodedBitmap): Uint8Array {
+  const signature = Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const ihdrData = new Uint8Array(13);
+  const ihdrView = new DataView(ihdrData.buffer);
+  ihdrView.setUint32(0, width, false);
+  ihdrView.setUint32(4, height, false);
+  ihdrData[8] = 8;
+  ihdrData[9] = 6;
+
+  const raw = new Uint8Array((width * 4 + 1) * height);
   for (let y = 0; y < height; y++) {
     const srcStart = y * width * 4;
     const dstStart = y * (width * 4 + 1);
-    raw[dstStart] = 0; // filter type: None
-    rgba.copy(raw, dstStart + 1, srcStart, srcStart + width * 4);
+    raw[dstStart] = 0;
+    raw.set(rgba.subarray(srcStart, srcStart + width * 4), dstStart + 1);
   }
-  const idatData = deflateSync(raw);
 
-  return Buffer.concat([signature, pngChunk('IHDR', ihdrData), pngChunk('IDAT', idatData), pngChunk('IEND', Buffer.alloc(0))]);
+  return concatBytes([signature, pngChunk('IHDR', ihdrData), pngChunk('IDAT', zlibSync(raw)), pngChunk('IEND', new Uint8Array())]);
 }
 
-/** Converts a BMP buffer to PNG bytes if it's a format we can decode (24/32bpp BI_RGB), else undefined. */
-export function bmpToPng(buf: Buffer): Buffer | undefined {
+export function bmpToPng(buf: Uint8Array): Uint8Array | undefined {
   const decoded = decodeBmp(buf);
   return decoded ? encodePng(decoded) : undefined;
 }

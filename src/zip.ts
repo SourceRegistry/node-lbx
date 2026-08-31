@@ -10,6 +10,8 @@ export interface LbxArchive {
   writeText(name: string, content: string): void;
   writeBinary(name: string, content: Buffer): void;
   toBuffer(): Buffer;
+  /** Node archives provide this for path-based image replacement; browser archives omit it. */
+  readExternalFile?(path: string): Buffer;
 }
 
 class AdmZipArchive implements LbxArchive {
@@ -46,6 +48,10 @@ class AdmZipArchive implements LbxArchive {
 
   toBuffer(): Buffer {
     return this.zip.toBuffer();
+  }
+
+  readExternalFile(path: string): Buffer {
+    return readFileSync(path);
   }
 }
 

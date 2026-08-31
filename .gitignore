@@ -149,7 +149,6 @@ vite.config.ts.timestamp-*
 
 # External
 ext
-examples
 fixtures
 !test/fixtures
 test-fixtures

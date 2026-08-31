@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>lbx preview</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: #2b2b2b;
+    font-family: system-ui, sans-serif;
+    color: #eee;
+  }
+  #drop {
+    border: 2px dashed #666;
+    border-radius: 8px;
+    padding: 32px 48px;
+    text-align: center;
+    cursor: pointer;
+  }
+  #drop.hover { border-color: #4da3ff; background: #333; }
+  #status { min-height: 1.2em; font-size: 14px; }
+  #status.error { color: #f88; }
+  #result {
+    background: #fff;
+    padding: 12px;
+    border-radius: 4px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    display: none;
+  }
+  #result svg { display: block; max-width: 90vw; max-height: 75vh; }
+  input[type="file"] { display: none; }
+</style>
+</head>
+<body>
+  <label id="drop" for="file">
+    <div>Drop an .lbx file here, or click to choose one</div>
+    <input id="file" type="file" accept=".lbx">
+  </label>
+  <div id="status"></div>
+  <div id="result"></div>
+
+  <script>
+    const drop = document.getElementById('drop');
+    const fileInput = document.getElementById('file');
+    const status = document.getElementById('status');
+    const result = document.getElementById('result');
+
+    async function render(file) {
+      status.classList.remove('error');
+      status.textContent = 'rendering ' + file.name + '…';
+      result.style.display = 'none';
+      try {
+        const res = await fetch('/render', { method: 'POST', body: file });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error || res.statusText);
+        result.innerHTML = body.svg;
+        result.style.display = 'block';
+        status.textContent = file.name;
+      } catch (err) {
+        status.classList.add('error');
+        status.textContent = 'error: ' + err.message;
+      }
+    }
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) render(fileInput.files[0]);
+    });
+
+    ['dragover', 'dragleave', 'drop'].forEach((type) => {
+      drop.addEventListener(type, (e) => {
+        e.preventDefault();
+        drop.classList.toggle('hover', type === 'dragover');
+      });
+    });
+    drop.addEventListener('drop', (e) => {
+      const file = e.dataTransfer.files[0];
+      if (file) render(file);
+    });
+  </script>
+</body>
+</html>

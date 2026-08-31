@@ -15,3 +15,6 @@ export type { CreateTextOptions, CreateImageOptions } from './builder/labelBuild
 
 export { toPt, formatPt, ptToMm, ptToIn, type Length, type LengthInput } from './units.js';
 export { NS } from './xml/namespaces.js';
+
+export { renderToSvg, type RenderOptions } from './render/svg.js';
+export { fillPlaceholders, type FillData, type FillValue } from './fill.js';

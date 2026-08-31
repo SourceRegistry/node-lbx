@@ -30,6 +30,34 @@ export class PaperStyle {
     this.el.setAttribute('height', formatPt(toPt(value)));
   }
 
+  get marginLeft(): Length {
+    return parsePt(this.el.getAttribute('marginLeft'));
+  }
+  set marginLeft(value: LengthInput) {
+    this.el.setAttribute('marginLeft', formatPt(toPt(value)));
+  }
+
+  get marginTop(): Length {
+    return parsePt(this.el.getAttribute('marginTop'));
+  }
+  set marginTop(value: LengthInput) {
+    this.el.setAttribute('marginTop', formatPt(toPt(value)));
+  }
+
+  get marginRight(): Length {
+    return parsePt(this.el.getAttribute('marginRight'));
+  }
+  set marginRight(value: LengthInput) {
+    this.el.setAttribute('marginRight', formatPt(toPt(value)));
+  }
+
+  get marginBottom(): Length {
+    return parsePt(this.el.getAttribute('marginBottom'));
+  }
+  set marginBottom(value: LengthInput) {
+    this.el.setAttribute('marginBottom', formatPt(toPt(value)));
+  }
+
   get orientation(): string {
     return this.el.getAttribute('orientation') ?? 'landscape';
   }

@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/SourceRegistry/node-lbx/compare/v1.0.1...v1.1.0) (2026-08-31)
+
+
+### Features
+
+* add browser-compatible LBX renderer ([bd9016e](https://github.com/SourceRegistry/node-lbx/commit/bd9016e59c6ae560d1694b136a2692a0cc41e740))
+
 ## [1.0.1](https://github.com/SourceRegistry/node-lbx/compare/v1.0.0...v1.0.1) (2026-08-31)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@sourceregistry/node-lbx",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Read, manipulate, and write Brother P-touch .lbx label files.",
   "type": "module",
   "main": "./dist/node-lbx.js",

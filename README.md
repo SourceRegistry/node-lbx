@@ -1,5 +1,10 @@
 # node-lbx
 
+[![npm version](https://img.shields.io/npm/v/node-lbx.svg)](https://www.npmjs.com/package/node-lbx)
+[![npm downloads](https://img.shields.io/npm/dm/node-lbx.svg)](https://www.npmjs.com/package/node-lbx)
+[![Release](https://github.com/SourceRegistry/node-lbx/actions/workflows/release.yml/badge.svg)](https://github.com/SourceRegistry/node-lbx/actions/workflows/release.yml)
+[![license](https://img.shields.io/npm/l/node-lbx.svg)](https://github.com/SourceRegistry/node-lbx/blob/main/LICENSE)
+
 Read, edit, and write Brother P-touch `.lbx` label files from Node/TypeScript.
 
 An `.lbx` file is a ZIP archive containing `label.xml` (the layout) plus `prop.xml` and any embedded images. This library parses it into a typed object model so you can find placeholder objects designed in P-touch Editor and fill them with real data (e.g. from a database), then write a new `.lbx`.

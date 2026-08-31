@@ -10,7 +10,7 @@ export default defineConfig({
       fileName: () => 'node-lbx.js',
     },
     rollupOptions: {
-      external: ['@xmldom/xmldom', 'adm-zip', 'node:fs', 'node:path'],
+      external: ['@xmldom/xmldom', 'adm-zip', 'node:fs', 'node:path', 'node:zlib'],
     },
     target: 'node18',
   },
